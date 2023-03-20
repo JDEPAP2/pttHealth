@@ -6,7 +6,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import '../class/record.dart';
 
 class Graph extends StatelessWidget {
-  final List<Record> data;
+  final ValueNotifier<List<Record>> data;
   Graph({required this.data});
   
   @override
@@ -27,14 +27,14 @@ class Graph extends StatelessWidget {
             tooltipBehavior: TooltipBehavior(enable: true),
             series: <ChartSeries<Record, String>>[
                 LineSeries<Record, String>(
-                    dataSource: List<Record>.of(data.where((r) => r.type)),
+                    dataSource: List<Record>.of(data.value.where((r) => r.type)),
                     xValueMapper: (Record r, _) => r.date,
                     yValueMapper: (Record r, _) => r.numb,
                     name: 'Mañana',
                     color: Colors.amber,
                     dataLabelSettings: DataLabelSettings(isVisible: true, color: Colors.amber, labelAlignment: ChartDataLabelAlignment.middle)),
                 LineSeries<Record, String>(
-                    dataSource: List<Record>.of(data.where((r) => !r.type)),
+                    dataSource: List<Record>.of(data.value.where((r) => !r.type)),
                     xValueMapper: (Record r, _) => r.date,
                     yValueMapper: (Record r, _) => r.numb,
                     name: 'Noche',

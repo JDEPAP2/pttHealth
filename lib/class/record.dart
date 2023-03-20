@@ -1,14 +1,19 @@
 import 'package:intl/intl.dart';
+import 'package:objectid/objectid.dart';
 
 class Record {
-  Record(this.numb, this.type, this.date, this.hour);
+  
+  Record(this.numb, this.type,this.realDate){
+      date = DateFormat.yMd().format(realDate);
+      hour = DateFormat.jm().format(realDate);
+    }
 
+  final ObjectId id = ObjectId();
   //Day true, Night false
   final bool type;
   final double numb;
-  final String date;
-  final String hour;
-  // final String date = DateFormat.yMd().format(DateTime.now());
-  // final String hour = DateFormat.jm().format(DateTime.now());
+  final DateTime realDate;
+  String date = "";
+  String hour = "";
   
 }

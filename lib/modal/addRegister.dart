@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:ptt_health/class/record.dart';
 import '../utils/custom_text_field.dart';
@@ -7,11 +9,27 @@ import '../screens/home.dart';
 
 class AddRegister extends HookWidget {
 
-  final List data;
+  final ValueNotifier<List<Record>> data;
 
   AddRegister({
     required this.data
   });
+
+  _writeData() async{
+    try {    
+          final File file = File("../data/data.txt");
+          String content = await file.readAsString();
+          String res = "";
+          data.value.forEach((element) {
+            res += element.id.toString() + "," + element.numb.toString() + "," + element.type.toString() + "," + element.realDate.toString() + ";";
+          });
+          file.writeAsStringSync(res);
+          return;
+        // ignore: empty_catches
+        } catch (e) {
+        }
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,8 +180,11 @@ class AddRegister extends HookWidget {
                         salir(){ 
                           Navigator.of(context).pop();
                           Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(builder: (context)=> Home()));
-                              data.add(Record(number.value, day.value, "3/21/2023", "7:30"));
+                              MaterialPageRoute(builder: (context)=> Home(fileData: data.value,)));
+                              List<Record> newL = data.value;
+                              newL.add(Record(number.value, day.value, DateTime.now()));
+                              data.value = newL;
+                              _writeData();
                         };
 
                         QuickAlert.show(context: context, 

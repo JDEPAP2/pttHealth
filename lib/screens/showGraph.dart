@@ -7,9 +7,9 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:quickalert/quickalert.dart';
 import '../screens/home.dart';
 
-class showGraph extends StatelessWidget{
+class showGraph extends HookWidget{
 
-  final List<Record> data;
+  final ValueNotifier<List<Record>> data;
 
   showGraph({required this.data});
 
