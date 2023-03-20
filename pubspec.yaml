@@ -37,6 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   syncfusion_flutter_charts: ^20.4.54
   intl: ^0.17.0
+  flutter_hooks: ^0.18.6
+  quickalert: ^1.0.1
 
 dev_dependencies:
   flutter_test:

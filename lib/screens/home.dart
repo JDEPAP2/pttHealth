@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ptt_health/modal/addRegister.dart';
 import 'package:ptt_health/modal/graph.dart';
+import 'package:ptt_health/screens/showGraph.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../class/record.dart';
 import '../modal/graph.dart';
@@ -35,27 +36,24 @@ class Home extends StatelessWidget {
       ];
       return {'day': days[day - 1], 'month': months[month - 1]};
     }
+    getColor(number){
+      if(number<70)
+        return Colors.blue[200];
+      if(number >= 70 && number <= 99)
+        return Colors.green[200];
+      if(number >= 100 && number <= 125)
+        return Colors.amber[200];
+      if(number>125)
+        return Colors.red[200];
+      return Colors.white;
 
+    }
     final titles = (dark) => TextStyle(
         fontWeight: FontWeight.bold,
         color: dark ? Color.fromARGB(255, 26, 26, 26) : Colors.white);
     final List<Record> data = [
       Record(70, true, "3/18/2023", "6:20"),
       Record(100, false, "3/18/2023", "12:20"),
-      Record(90, true, "3/19/2023", "8:20"),
-      Record(120, false, "3/19/2023", "1:40"),
-      Record(70, true, "3/20/2023", "12:20"),
-      Record(120, false, "3/20/2023", "12:20"),
-      Record(90, true, "3/21/2023", "12:20"),
-      Record(180, false, "3/21/2023", "12:20"),
-      Record(80, true, "3/22/2023", "12:20"),
-      Record(100, false, "3/22/2023", "12:20"),
-      Record(70, true, "3/23/2023", "12:20"),
-      Record(120, false, "3/24/2023", "12:20"),
-      Record(90, true, "3/25/2023", "12:20"),
-      Record(180, false, "3/26/2023", "12:20"),
-      Record(80, true, "3/27/2023", "12:20"),
-      Record(100, false, "3/28/2023", "12:20"),
     ];
     return Scaffold(
       appBar: AppBar(
@@ -68,8 +66,9 @@ class Home extends StatelessWidget {
           title: Text("Ptt Health", style: titles(false)),
           actions: [
             IconButton(
-              icon: const Icon(Icons.edit_document),
-              onPressed: () => {},
+              icon: const Icon(Icons.auto_graph),
+              onPressed: ()=>Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context)=> showGraph(data: data))),
             )
           ]),
       body: ListView(
@@ -114,7 +113,7 @@ class Home extends StatelessWidget {
                             Text(
                                 '${getDate(month: DateTime.now().month)['month']}',
                                 style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Color.fromRGBO(255, 255, 255, 1),
                                     fontSize: 40,
                                     height: 0.8))
                           ])),
@@ -155,7 +154,8 @@ class Home extends StatelessWidget {
                     ]),
               )),
           Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+            margin: EdgeInsets.symmetric(horizontal: 15),
+              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
               child: Container(
                   decoration: BoxDecoration(
                       gradient: const LinearGradient(colors: [
@@ -173,7 +173,7 @@ class Home extends StatelessWidget {
                   child: Column(
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 20),
+                        padding: EdgeInsets.symmetric(vertical: 10),
                         child: Text(
                           "Registros Anteriores",
                           style: TextStyle(
@@ -186,116 +186,79 @@ class Home extends StatelessWidget {
                           shrinkWrap: true,
                           itemBuilder: (c, i) {
                             return Container(
+                                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
+                                    horizontal: 0, vertical: 2),
                                 child: Container(
                                   decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
                                       color: Colors.white.withOpacity(0.1)),
-                                  child: (data.length != i &&
-                                          data[i].date == data[i + 1].date &&
-                                          data[i].type &&
-                                          data[i].date !=
+                                  child: (data[i].date !=
                                               DateFormat.yMd()
                                                   .format(DateTime.now()))
-                                      ? Column(children: [
+                                      ? Column(
+                                        children: [
                                           Row(
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.center,
+                                               mainAxisAlignment: MainAxisAlignment.center,
                                               children: [
                                                 IconButton(
+                                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
+                                                  constraints: BoxConstraints(),
                                                   icon: const Icon(Icons.sunny,
-                                                      size: 17),
+                                                      size: 12),
                                                   onPressed: () => {},
-                                                  color: Colors.white,
+                                                  color: getColor(data[i].numb),
+                                                  
                                                 ),
-                                                Text(': ${data[i].numb} mg/dl',
+                                                Text(':   ${data[i].numb} mg/dl',
                                                     style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 17,
-                                                        height: 1.9,
+                                                        color: getColor(data[i].numb),
+                                                        fontSize: 12,
+                                                        height: 1,
                                                         fontWeight:
                                                             FontWeight.bold)),
                                                 IconButton(
+                                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
+                                                  constraints: BoxConstraints(),
                                                   alignment:
                                                       Alignment.centerRight,
                                                   icon: const Icon(
                                                       Icons.date_range,
-                                                      size: 17),
+                                                      size: 12),
                                                   onPressed: () => {},
-                                                  color: Colors.white,
+                                                  color: getColor(data[i].numb),
                                                 ),
-                                                Text(': ${data[i].date}',
+                                                Text(':   ${data[i].date}',
                                                     textAlign: TextAlign.right,
                                                     style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 17,
-                                                        height: 1.9,
+                                                        color: getColor(data[i].numb),
+                                                        fontSize: 12,
+                                                        height: 1,
                                                         fontWeight:
                                                             FontWeight.bold)),
                                                 IconButton(
+                                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
+                                                  constraints: BoxConstraints(),
                                                   alignment:
                                                       Alignment.centerRight,
                                                   icon: const Icon(
                                                       Icons.more_time,
-                                                      size: 17),
+                                                      size: 12),
                                                   onPressed: () => {},
-                                                  color: Colors.white,
+                                                  color: getColor(data[i].numb),
                                                 ),
-                                                Text(': ${data[i].hour}',
+                                                Text(':   ${data[i].hour}',
                                                     textAlign: TextAlign.right,
                                                     style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 17,
-                                                        height: 1.9,
+                                                        color: getColor(data[i].numb),
+                                                        fontSize: 12,
+                                                        height: 1,
                                                         fontWeight:
                                                             FontWeight.bold))
                                               ]),
-                                          Row(children: [
-                                            IconButton(
-                                              icon: const Icon(Icons.nightlight,
-                                                  size: 17),
-                                              onPressed: () => {},
-                                              color: Colors.white,
-                                            ),
-                                            Text(': ${data[i + 1].numb} mg/dl',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 17,
-                                                    height: 1.2,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            IconButton(
-                                              alignment: Alignment.centerRight,
-                                              icon: const Icon(Icons.date_range,
-                                                  size: 17),
-                                              onPressed: () => {},
-                                              color: Colors.white,
-                                            ),
-                                            Text(': ${data[i + 1].date}',
-                                                textAlign: TextAlign.right,
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 17,
-                                                    height: 1.2,
-                                                    fontWeight:
-                                                        FontWeight.bold)),
-                                            IconButton(
-                                              alignment: Alignment.centerRight,
-                                              icon: const Icon(Icons.more_time,
-                                                  size: 17),
-                                              onPressed: () => {},
-                                              color: Colors.white,
-                                            ),
-                                            Text(': ${data[i + 1].hour}',
-                                                textAlign: TextAlign.right,
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 17,
-                                                    height: 1.2,
-                                                    fontWeight:
-                                                        FontWeight.bold))
-                                          ]),
+                                          
                                         ])
                                       : null,
                                 ));
@@ -327,7 +290,7 @@ class Home extends StatelessWidget {
                         topRight: Radius.circular(20))),
                 isScrollControlled: true,
                 builder: (context) {
-                  return AddRegister();
+                  return AddRegister(data: data);
                 },
               ),
             )
