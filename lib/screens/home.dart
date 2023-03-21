@@ -7,11 +7,11 @@ import 'package:path_provider/path_provider.dart';
 import 'package:ptt_health/modal/addRegister.dart';
 import 'package:ptt_health/modal/graph.dart';
 import 'package:ptt_health/screens/showGraph.dart';
+import 'package:ptt_health/utils/dataManager.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../class/record.dart';
 import '../modal/graph.dart';
 import 'package:intl/intl.dart';
-
 
 class Home extends HookWidget {
 
@@ -26,9 +26,8 @@ class Home extends HookWidget {
         fontWeight: FontWeight.bold,
         color: dark ? Color.fromARGB(255, 26, 26, 26) : Colors.white);
 
-    final data = useState(fileData);
-    final test = useState('a');
-    
+    final data = useState(List<Record>.empty(growable: true));
+
     getDate({day = 1, month = 1}) {
       var days = [
         'Lunes',
@@ -95,13 +94,20 @@ class Home extends HookWidget {
       if(todayDay.isNotEmpty && todayNight.isEmpty){
         return getGradient(todayDay[0].numb);
       }
-      if(todayDay.isEmpty && todayDay.isNotEmpty){
+      if(todayDay.isEmpty && todayNight.isNotEmpty){
         return getGradient(todayNight[0].numb);
       }
       if(todayDay.isNotEmpty && todayDay.isNotEmpty){
         return getGradient((todayDay[0].numb + todayNight[0].numb)/2);
       }
     }
+
+    handleData() async{
+      data.value = await dataManager().loadData();
+    }
+
+    Future(() => handleData());
+
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Color.fromARGB(255, 26, 110, 179),
@@ -144,7 +150,7 @@ class Home extends HookWidget {
                           padding: const EdgeInsets.only(top: 10, bottom: 25),
                           child: Column(children: [
                             Text(
-                                '${test.value}',
+                                '${getDate(month: DateTime.now().month)['day']}',
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 35,
@@ -173,7 +179,7 @@ class Home extends HookWidget {
                               onPressed: () => {},
                               color: Colors.white,
                             ),
-                            Text( todayDay.isEmpty?': -- --':'${calculateToday(true)[0]}',
+                            Text( todayDay.isEmpty?': -- --':todayDay[0].numb.toString(),
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
@@ -186,7 +192,7 @@ class Home extends HookWidget {
                               onPressed: () => {},
                               color: Colors.white,
                             ),
-                            Text(todayNight.isEmpty?': -- --':calculateToday(true)[0].toString(),
+                            Text(todayNight.isEmpty?': -- --':todayNight[0].numb.toString(),
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,

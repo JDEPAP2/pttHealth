@@ -1,7 +1,9 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:ptt_health/class/record.dart';
+import 'package:ptt_health/utils/dataManager.dart';
 import '../utils/custom_text_field.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:quickalert/quickalert.dart';
@@ -15,21 +17,7 @@ class AddRegister extends HookWidget {
     required this.data
   });
 
-  _writeData() async{
-    try {    
-          final File file = File("../data/data.txt");
-          String content = await file.readAsString();
-          String res = "";
-          data.value.forEach((element) {
-            res += element.id.toString() + "," + element.numb.toString() + "," + element.type.toString() + "," + element.realDate.toString() + ";";
-          });
-          file.writeAsStringSync(res);
-          return;
-        // ignore: empty_catches
-        } catch (e) {
-        }
 
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +27,10 @@ class AddRegister extends HookWidget {
     final temp = useState("");
     final numberController = TextEditingController(text:temp.value);
     
+    handleData(newData)async{
+      await dataManager().writeData(newData);
+      data.value = await dataManager().loadData();
+    }
 
     return Wrap(
       children: [
@@ -181,10 +173,11 @@ class AddRegister extends HookWidget {
                           Navigator.of(context).pop();
                           Navigator.of(context).pushReplacement(
                               MaterialPageRoute(builder: (context)=> Home(fileData: data.value,)));
-                              List<Record> newL = data.value;
+                              List<Record> newL = List<Record>.of(data.value);
                               newL.add(Record(number.value, day.value, DateTime.now()));
                               data.value = newL;
-                              _writeData();
+                              handleData(data.value);
+
                         };
 
                         QuickAlert.show(context: context, 
