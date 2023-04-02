@@ -1,17 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:ptt_health/modal/addRegister.dart';
-import 'package:ptt_health/modal/graph.dart';
+import 'package:ptt_health/screens/addRegister.dart';
+import 'package:ptt_health/modal/registerList.dart';
+import 'package:ptt_health/screens/downloadFile.dart';
 import 'package:ptt_health/screens/showGraph.dart';
-import 'package:ptt_health/utils/dataManager.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import '../class/record.dart';
-import '../modal/graph.dart';
 import 'package:intl/intl.dart';
+import '../utils/excelManager.dart';
 
 class Home extends HookWidget {
 
@@ -19,14 +15,15 @@ class Home extends HookWidget {
 
   Home({required this.fileData});
 
-
   @override
   Widget build(BuildContext context) {
     final titles = (dark) => TextStyle(
         fontWeight: FontWeight.bold,
         color: dark ? Color.fromARGB(255, 26, 26, 26) : Colors.white);
 
-    final data = useState(List<Record>.empty(growable: true));
+    final data = useState(List<Record>.empty());
+    data.value = fileData;
+    print(fileData);
 
     getDate({day = 1, month = 1}) {
       var days = [
@@ -53,18 +50,7 @@ class Home extends HookWidget {
       ];
       return {'day': days[day - 1], 'month': months[month - 1]};
     }
-    getColor(number, sz){
-      if(number<70)
-        return Colors.blue[sz];
-      if(number >= 70 && number <= 99)
-        return Colors.green[sz];
-      if(number >= 100 && number <= 125)
-        return Colors.amber[sz];
-      if(number>125)
-        return Colors.red[sz];
-        
-      return Colors.white;
-    }
+
     getGradient(number){
       if(number <70 && number > 0)
         return LinearGradient(colors: [Color.fromRGBO(21, 101, 192, 1), Color.fromRGBO(33, 150, 243, 1) ], begin: Alignment.topLeft, end: Alignment.bottomRight);
@@ -101,28 +87,28 @@ class Home extends HookWidget {
         return getGradient((todayDay[0].numb + todayNight[0].numb)/2);
       }
     }
-
-    handleData() async{
-      data.value = await dataManager().loadData();
-    }
-
-    Future(() => handleData());
-
+    print(data);
+    
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp
+    ]);
     return Scaffold(
       appBar: AppBar(
           backgroundColor: Color.fromARGB(255, 26, 110, 179),
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () => {},
-          ),
+              icon: const Icon(Icons.auto_graph),
+              onPressed: (){
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => showGraph(data: data)));});
+                },
+            )
+          ,
           title: Text("Ptt Health", style: titles(false)),
           actions: [
             IconButton(
-              icon: const Icon(Icons.auto_graph),
-              onPressed: ()=>Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context)=> showGraph(data: data))),
-            )
+            icon: const Icon(Icons.account_circle),
+            onPressed: () => {})
           ]),
       body: ListView(
         shrinkWrap: true,
@@ -167,159 +153,45 @@ class Home extends HookWidget {
                                     fontSize: 40,
                                     height: 0.8))
                           ])),
-                      Container(
+                      todayDay.isNotEmpty || todayNight.isNotEmpty?Container(
                         padding: EdgeInsets.symmetric(horizontal: 10),
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(10),
                             color: Colors.white.withOpacity(0.1)),
                         child: Column(children: [
-                          Row(children: [
-                            IconButton(
+                          todayDay.isNotEmpty?Row(
+                            children: [
+                              IconButton(
                               icon: const Icon(Icons.sunny),
                               onPressed: () => {},
                               color: Colors.white,
                             ),
-                            Text( todayDay.isEmpty?': -- --':todayDay[0].numb.toString(),
+                              Text(todayDay[0].numb.toString(),
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
                                     height: 0.75,
                                     fontWeight: FontWeight.bold))
-                          ]),
-                          Row(children: [
+                            ]):Row(),
+
+                          todayNight.isNotEmpty?Row(children: [
                             IconButton(
                               icon: const Icon(Icons.nightlight),
                               onPressed: () => {},
                               color: Colors.white,
                             ),
-                            Text(todayNight.isEmpty?': -- --':todayNight[0].numb.toString(),
+                            Text(todayNight[0].numb.toString(),
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 20,
                                     height: 0.75,
                                     fontWeight: FontWeight.bold))
-                          ]),
+                          ]):Row(),
                         ]),
-                      )
+                      ):Column()
                     ]),
               )),
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 15),
-              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-              child: Container(
-                  decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [
-                        Color.fromARGB(255, 6, 53, 107),
-                        Color.fromARGB(255, 3, 41, 97)
-                      ], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 5,
-                            spreadRadius: 5,
-                            offset: Offset(5, 5))
-                      ],
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        child: Text(
-                          "Registros Anteriores",
-                          style: TextStyle(
-                              fontSize: 30,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      ListView.builder(
-                          shrinkWrap: true,
-                          itemBuilder: (c, i) {
-                            return Container(
-                                margin: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 0, vertical: 2),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Colors.white.withOpacity(0.1)),
-                                  child:Column(
-                                        children: [
-                                          Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                               mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                data.value[i].type?IconButton(
-                                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-                                                  constraints: BoxConstraints(),
-                                                  icon: const Icon( Icons.sunny,
-                                                      size: 12),
-                                                  onPressed: () => {},
-                                                  color: getColor(data.value[i].numb, 200),
-                                                  
-                                                ):IconButton(
-                                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-                                                  constraints: BoxConstraints(),
-                                                  icon: const Icon( Icons.dark_mode,
-                                                      size: 12),
-                                                  onPressed: () => {},
-                                                  color: getColor(data.value[i].numb, 200)
-                                                ),
-                                                Text(':   ${data.value[i].numb} mg/dl',
-                                                    style: TextStyle(
-                                                        color: getColor(data.value[i].numb, 200),
-                                                        fontSize: 12,
-                                                        height: 1,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                                IconButton(
-                                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-                                                  constraints: BoxConstraints(),
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  icon: const Icon(
-                                                      Icons.date_range,
-                                                      size: 12),
-                                                  onPressed: () => {},
-                                                  color: getColor(data.value[i].numb, 200),
-                                                ),
-                                                Text(':   ${data.value[i].date}',
-                                                    textAlign: TextAlign.right,
-                                                    style: TextStyle(
-                                                        color: getColor(data.value[i].numb, 200),
-                                                        fontSize: 12,
-                                                        height: 1,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                                IconButton(
-                                                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-                                                  constraints: BoxConstraints(),
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  icon: const Icon(
-                                                      Icons.more_time,
-                                                      size: 12),
-                                                  onPressed: () => {},
-                                                  color: getColor(data.value[i].numb, 200),
-                                                ),
-                                                Text(':   ${data.value[i].hour}',
-                                                    textAlign: TextAlign.right,
-                                                    style: TextStyle(
-                                                        color: getColor(data.value[i].numb, 200),
-                                                        fontSize: 12,
-                                                        height: 1,
-                                                        fontWeight:
-                                                            FontWeight.bold))
-                                              ]),
-                                          
-                                        ])
-                                      ,
-                                ));
-                          },
-                          itemCount: data.value.length < 10 ? data.value.length : 10),
-                    ],
-                  )))
+              RegisterList(realData: data)
         ],
       ),
       floatingActionButton: Column(
@@ -327,12 +199,25 @@ class Home extends HookWidget {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             FloatingActionButton(
+              heroTag: "EditDocument",
               backgroundColor: Color.fromARGB(255, 26, 110, 179),
               child: const Icon(Icons.edit_document),
-              onPressed: () {},
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20))),
+                isScrollControlled: true,
+                builder: (context) {
+                  return DownloadFile(data: data);
+                },
+              ),
             ),
             Container(height: 10),
             FloatingActionButton(
+              heroTag: "AddRegister",
               backgroundColor: Color.fromARGB(255, 26, 110, 179),
               child: const Icon(Icons.add),
               onPressed: () => showModalBottomSheet(

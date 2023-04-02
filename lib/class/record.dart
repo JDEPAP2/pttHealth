@@ -8,11 +8,11 @@ class Record {
       hour = DateFormat.jm().format(realDate);
     }
 
-  final ObjectId id = ObjectId();
+  ObjectId id = ObjectId();
   //Day true, Night false
-  final bool type;
-  final double numb;
-  final DateTime realDate;
+  bool type;
+  double numb;
+  DateTime realDate;
   String date = "";
   String hour = "";
   

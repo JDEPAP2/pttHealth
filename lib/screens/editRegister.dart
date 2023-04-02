@@ -1,5 +1,3 @@
-import 'dart:ffi';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:ptt_health/class/record.dart';
@@ -7,41 +5,53 @@ import 'package:ptt_health/utils/dataManager.dart';
 import '../utils/custom_text_field.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:quickalert/quickalert.dart';
-import '../screens/home.dart';
+import 'home.dart';
 
-class AddRegister extends HookWidget {
+class EditRegister extends HookWidget {
 
   final ValueNotifier<List<Record>> data;
+  final int index;
 
-  AddRegister({
-    required this.data
+
+  EditRegister({
+    required this.data,
+    required this.index
   });
 
 
 
   @override
   Widget build(BuildContext context) {
-    final day = useState(true);
-    final night = useState(true);
-    final number = useState(0.0);
-    final temp = useState("");
-    final numberController = TextEditingController(text:temp.value);
+    
+    final item = useState(data.value[index]);
+    final day = useState(item.value.type);
+    final number = useState(item.value.numb);
+    final temp = useState(item.value.numb.toString());
+    final controller = TextEditingController.fromValue(
+      TextEditingValue(
+        text:temp.value, 
+        selection: TextSelection.collapsed(
+          offset: temp.value.length)));
     
     handleData(newData)async{
-      await dataManager().writeData(newData);
-      data.value = await dataManager().loadData();
+      await DataManager().writeData(newData);
+      data.value = await DataManager().loadData();
+    }
+
+
+    salir(){
+      handleData(data.value);
+      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(builder: (context)=> Home(fileData: data.value,)));
     }
 
     return Wrap(
       children: [
         Container(
           width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height * 85 / 100,
+          height: MediaQuery.of(context).size.height * 70 /100,
           padding: EdgeInsets.only(left: 16, right: 16, bottom: 32, top: 16),
-          decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20), topRight: Radius.circular(20))),
           child: ListView(
             shrinkWrap: true,
             padding: EdgeInsets.only(
@@ -63,7 +73,7 @@ class AddRegister extends HookWidget {
               Container(
                 margin: EdgeInsets.only(bottom: 24),
                 child: Text(
-                  'Añadir Registro',
+                  'Editar Registro',
                   style: TextStyle(
                       color: Color.fromARGB(255, 13, 57, 94),
                       fontSize: 22,
@@ -72,7 +82,7 @@ class AddRegister extends HookWidget {
                 ),
               ),
               // Form
-              CustomTextField(title: 'Valor Numerico de la glucosa', hint: '0-200', controller: numberController,),
+              CustomTextField(title: 'Valor Numerico de la glucosa', hint: '0-200', text: temp, controller: controller),
               Container(
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -98,10 +108,8 @@ class AddRegister extends HookWidget {
                               width: 125,
                               height:50,
                               child: ElevatedButton(
-                                  onPressed: day.value?() {
+                                  onPressed: !day.value?() {
                                     day.value = !day.value;
-                                    night.value = true;
-                                    temp.value = numberController.text;
                                   }: null,
                                   style: ElevatedButton.styleFrom(
                                       disabledBackgroundColor: Color.fromARGB(255, 75, 67, 44),
@@ -112,7 +120,7 @@ class AddRegister extends HookWidget {
                                           Color.fromARGB(255, 202, 148, 0)),
                                   child: Text('Ayuno',
                                       style: TextStyle(
-                                          color: day.value?Colors.white:Colors.white38,
+                                          color: !day.value?Colors.white:Colors.white38,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                           fontFamily: 'inter')))),
@@ -121,10 +129,8 @@ class AddRegister extends HookWidget {
                               width: 125,
                               height:50,
                               child: ElevatedButton(
-                                  onPressed: night.value?() {
-                                    night.value = !night.value;
-                                    day.value = true;
-                                    temp.value = numberController.text;
+                                  onPressed: day.value?() {
+                                    day.value = !day.value;
                                   }: null,
                                   style: ElevatedButton.styleFrom(
                                       disabledBackgroundColor: Color.fromARGB(255, 39, 45, 63),
@@ -135,7 +141,7 @@ class AddRegister extends HookWidget {
                                           Color.fromARGB(255, 15, 25, 56)),
                                   child: Text('Noche',
                                       style: TextStyle(
-                                          color: night.value?Colors.white:Colors.white30,
+                                          color: day.value?Colors.white:Colors.white30,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                           fontFamily: 'inter'))))
@@ -143,42 +149,52 @@ class AddRegister extends HookWidget {
                       ),)
                     ]),
               ),
-              // Log in Button
+              Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children:[
               Container(
-                margin: EdgeInsets.only(top: 50, bottom: 6),
-                width: MediaQuery.of(context).size.width,
+                margin: EdgeInsets.symmetric(vertical: 50, horizontal: 7),
+                width: 150,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: () {
+                    data.value.removeWhere((element) => element.id == item.value.id);
+                    salir();
+                  },
+                  child: Text('Eliminar',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'inter')),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    primary: Color.fromARGB(255, 179, 26, 26),
+                ),
+              )),
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 50, horizontal: 7),
+                width: 150,
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
                     try{
-                      if(numberController.text == ""){
+                      if(temp.value == ""){
                         QuickAlert.show(context: context, 
                           type: QuickAlertType.info,
                           title: "Digite un valor numerico"
                         );
                         return;
                       }
-                      number.value = double.parse(numberController.text);
+                      number.value = double.parse(temp.value);
                       if(60 <= number.value && number.value <= 300){
-                        if (day.value && night.value){
-                          QuickAlert.show(context: context, 
-                            type: QuickAlertType.info,
-                            title: "Seleccione la jornada en la que realizara el registro"
-                          );
-                          temp.value = numberController.text;
-                          return;
-                        }
-                        
-                        salir(){ 
-                          Navigator.of(context).pop();
-                          Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(builder: (context)=> Home(fileData: data.value,)));
-                              List<Record> newL = List<Record>.of(data.value);
-                              newL.add(Record(number.value, day.value, DateTime.now()));
-                              data.value = newL;
-                              handleData(data.value);
 
-                        };
+                        item.value.numb = number.value;
+                        item.value.type = day.value;
+
+                        data.value[index] = item.value;
 
                         QuickAlert.show(context: context, 
                           type: QuickAlertType.success,
@@ -186,6 +202,7 @@ class AddRegister extends HookWidget {
                           onCancelBtnTap: (){salir();},
                           onConfirmBtnTap: (){salir();}
                         );
+
                       }else{
                         QuickAlert.show(context: context, 
                           type: QuickAlertType.info,
@@ -201,7 +218,7 @@ class AddRegister extends HookWidget {
 
 
                   },
-                  child: Text('Añadir',
+                  child: Text('Guardar',
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -214,6 +231,7 @@ class AddRegister extends HookWidget {
                   ),
                 ),
               ),
+              ])
             ],
           ),
         )

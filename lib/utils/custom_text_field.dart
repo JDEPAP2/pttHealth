@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 class CustomTextField extends StatelessWidget {
   final String title;
   final String hint;
-  final TextEditingController? controller;
   final bool obsecureText;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
+  final ValueNotifier<String> text;
+  final TextEditingController? controller;
 
   CustomTextField({
     required this.title,
     required this.hint,
+    required this.text,
     this.controller,
     this.obsecureText = false,
     this.padding,
@@ -19,6 +21,7 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       padding: padding,
       margin: margin,
@@ -41,6 +44,9 @@ class CustomTextField extends StatelessWidget {
                 color: Color.fromARGB(80, 141, 161, 179),
                 borderRadius: BorderRadius.circular(10)),
             child: TextField(
+              onTapOutside: (v) => FocusManager.instance.primaryFocus?.unfocus(),
+              onChanged: (value) => text.value = value,
+              textInputAction: TextInputAction.done,
               controller: controller,
               style: TextStyle(fontSize: 14),
               cursorColor: Color.fromARGB(255, 26, 110, 179),

@@ -7,6 +7,7 @@ import 'screens/home.dart';
 import 'utils/dataManager.dart';
 
 void main() {
+  // ignore: prefer_const_constructors
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     systemNavigationBarColor: Colors.black,
     systemNavigationBarIconBrightness: Brightness.light,
@@ -22,28 +23,33 @@ class MyApp extends StatefulWidget{
 class MyAppState extends State<MyApp> {
 
   List<Record> data = List<Record>.empty();
-
+  Widget body = CircularProgressIndicator( color:Colors.black);
+  
   @override
   void initState() {
-    super.initState();
     getData();
+    super.initState();
   }
 
-  getData() async
+
+  Future<Widget> getData() async
   {
-    data = await dataManager().loadData();
-  }
+    data = await DataManager().loadData();
 
-
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+    setState( ()=> body = MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           fontFamily: 'Open Sans',
           scaffoldBackgroundColor: Colors.white,
         ),
-        home: Home(fileData: data,));
+        home: Home(fileData: data)));
+    
+    return body;
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return body;
   }
 }
